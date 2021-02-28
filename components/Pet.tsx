@@ -76,6 +76,3 @@ const Pet = () => {
 };
 
 export default Pet;
-
-// TODO Add mad when ban happens
-// TODO Add hatching state
