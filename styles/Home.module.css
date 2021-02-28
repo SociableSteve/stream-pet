@@ -1,0 +1,26 @@
+.stats {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  color: white;
+  text-align: center;
+  display: grid;
+  padding: 10px;
+  grid-template-columns: auto auto auto auto auto;
+}
+
+.stats img {
+  margin-right: 3px;
+}
+
+.pet {
+  height: 128px;
+  width: 128px;
+  overflow: hidden;
+  color: white;
+  position: absolute;
+  transition-property: left;
+  transition-duration: 100ms;
+}
