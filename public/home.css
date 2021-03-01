@@ -1,4 +1,4 @@
-.stats {
+#statusBar {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -11,11 +11,11 @@
   grid-template-columns: auto auto auto auto auto;
 }
 
-.stats img {
+#statusBar img {
   margin-right: 3px;
 }
 
-.pet {
+#pet {
   height: 128px;
   width: 128px;
   overflow: hidden;
