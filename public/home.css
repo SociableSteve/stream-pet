@@ -1,3 +1,9 @@
+body {
+  overflow: hidden;
+  font-size: 16pt;
+  font-family: "Microsoft JhengHei", Courier, monospace;
+}
+
 #statusBar {
   position: absolute;
   bottom: 0;
@@ -18,9 +24,26 @@
 #pet {
   height: 128px;
   width: 128px;
-  overflow: hidden;
   color: white;
   position: absolute;
   transition-property: left;
   transition-duration: 100ms;
+}
+
+.bitDrop {
+  position: absolute;
+  bottom: 1100px;
+  transition-property: bottom, opacity;
+}
+
+#speech {
+  position: absolute;
+  bottom: 133px;
+  background: #b4b4b4;
+  color: black;
+  border: 1px solid #4c008d;
+  border-radius: 3px;
+  padding: 0 10px 5px;
+  white-space: nowrap;
+  opacity: 0;
 }

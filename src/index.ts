@@ -1,7 +1,11 @@
+import * as dotenv from "dotenv";
+dotenv.config();
 import * as express from "express";
 import * as ws from "ws";
 import * as path from "path";
 import * as http from "http";
+import * as tmi from "tmi.js";
+import Pet from "./pet";
 
 // Set up express
 const app = express();
@@ -10,55 +14,81 @@ app.use(express.static(path.resolve(__dirname, "../public")));
 // Set up HTTP server
 const server = http.createServer(app);
 server.listen(process.env.PORT || 8080);
-interface Activity {
-  image: string;
-  speed: number;
-}
-const activities: Activity[] = [
-  { image: "Sitting.gif", speed: 0 },
-  { image: "Walking.gif", speed: 5 },
-  { image: "Running.gif", speed: 10 },
-  { image: "Sleeping.gif", speed: 0 },
-];
-let activity = activities[0];
 
-let status = [
-  { name: "happiness", max: 5, current: 1 },
-  { name: "hunger", max: 5, current: 2 },
-  { name: "health", max: 5, current: 3 },
-  { name: "social", max: 5, current: 4 },
-];
-
-let stats = [
-  { name: "Age", value: 0 },
-  { name: "Weight", value: 0 },
-];
+const pet = new Pet();
 
 // Set up WebSocket server
 const wss = new ws.Server({ server });
 wss.on("connection", (socket, req) => {
-  console.log("connection received");
-  socket.send(
-    JSON.stringify({
-      status,
-      stats,
-      activity,
-    })
-  );
-  socket.on("message", (message) => console.log(message));
+  socket.send(JSON.stringify(pet.toJSON()));
 });
 
-setInterval(() => {
-  activity = activities[Math.floor(Math.random() * activities.length)];
-  wss.clients.forEach((client) => client.send(JSON.stringify({ activity })));
+pet.on("activity", (activity) =>
+  wss.clients.forEach((client) => client.send(JSON.stringify({ activity })))
+);
+pet.on("status", (status) =>
+  wss.clients.forEach((client) => client.send(JSON.stringify({ status })))
+);
+pet.on("stats", (stats) =>
+  wss.clients.forEach((client) => client.send(JSON.stringify({ stats })))
+);
 
-  for (let stat of status) {
-    stat.current = Math.floor(Math.random() * stat.max);
-  }
-  wss.clients.forEach((client) => client.send(JSON.stringify({ status })));
+const twitch = new tmi.Client({
+  connection: {
+    reconnect: true,
+    secure: true,
+  },
+  identity: {
+    username: process.env.TWITCH_USER,
+    password: process.env.TWITCH_PASS,
+  },
+  channels: [process.env.TWITCH_CHANNEL],
+});
 
-  for (let stat of stats) {
-    stat.value = Math.floor(Math.random() * 9) + 1;
-  }
-  wss.clients.forEach((client) => client.send(JSON.stringify({ stats })));
-}, 5000);
+const users_seen = [];
+
+twitch.on("message", (channel, tags, message, self) => {
+  if (self) return;
+  if (tags["display-name"].toLowerCase() === "streamelements") return;
+  pet.setLastMessage(Date.now());
+  if (users_seen.includes(tags["display-name"])) return;
+  users_seen.push(tags["display-name"]);
+
+  wss.clients.forEach((client) =>
+    client.send(JSON.stringify({ seen: tags["display-name"] }))
+  );
+});
+twitch.on("subscription", (channel, username) => {
+  wss.clients.forEach((client) =>
+    client.send(JSON.stringify({ subscription: username }))
+  );
+});
+twitch.on("ban", (channel, username) => {
+  wss.clients.forEach((client) =>
+    client.send(JSON.stringify({ ban: username }))
+  );
+});
+
+const bitmote_checks = new RegExp(
+  /^(Cheer|DoodleCheer|BibleThump|cheerwhal|Corgo|Scoops|uni|ShowLove|Party|SeemsGood|Pride|Kappa|FrankerZ|HeyGuys|DansGame|EleGiggle|TriHard|Kreygasm|4Head|SwiftRage|NotLikeThis|FailFish|VoHiYo|PJSalt|MrDestructoid|bday|RIPCheer|Shamrock|BitBoss|Streamlabs|Muxy|HolidayCheer|Goal|Anon|Charity)(\d+)/
+);
+
+twitch.on("cheer", (channel, userstate, message) => {
+  pet.addBits(parseInt(userstate.bits));
+  wss.clients.forEach((client) =>
+    client.send(JSON.stringify({ bitsFrom: userstate["display-name"] }))
+  );
+  const words = message.split(" ");
+  words.forEach((word) => {
+    let match: RegExpExecArray;
+    if ((match = bitmote_checks.exec(word))) {
+      wss.clients.forEach((client) =>
+        client.send(
+          JSON.stringify({ bits: { type: match[1], amount: match[2] } })
+        )
+      );
+    }
+  });
+});
+
+twitch.connect();
