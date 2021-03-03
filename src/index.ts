@@ -65,9 +65,9 @@ twitch.on("message", (channel, tags, message, self) => {
   if (self) return;
   if (tags["display-name"].toLowerCase() === "streamelements") return;
   pet.setLastMessage(Date.now());
+  pet.addHappiness(1);
   if (users_seen.includes(tags["display-name"])) return;
   users_seen.push(tags["display-name"]);
-  pet.addHappiness(1);
 
   wss.clients.forEach((client) =>
     client.send(JSON.stringify({ seen: tags["display-name"] }))
