@@ -8,7 +8,10 @@ import * as tmi from "tmi.js";
 import Pet from "./pet";
 
 import * as pg from "pg";
-const db = new pg.Client({ connectionString: process.env.DATABASE_URL });
+const db = new pg.Client({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+});
 db.connect().then(() => {
   db.query(
     "create table if not exists status (name varchar(25) not null unique, current int)"
