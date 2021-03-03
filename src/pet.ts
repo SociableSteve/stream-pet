@@ -120,6 +120,13 @@ class Pet extends EventEmitter {
     ) {
       const health = this.status.find((s) => s.name === "health");
       health.current = Math.max(1, health.current - 1);
+    } else if (
+      this.status
+        .filter((s) => s.name !== "health")
+        .every((s) => s.current >= 3)
+    ) {
+      const health = this.status.find((s) => s.name === "health");
+      health.current = Math.min(5, health.current + 1);
     }
   }
 
