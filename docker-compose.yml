@@ -1,0 +1,11 @@
+version: "3"
+
+services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: squishy
+      POSTGRES_USER: squishy
+      POSTGRES_DB: squishy
+    ports:
+      - "5432:5432"

@@ -1,4 +1,5 @@
 import { EventEmitter } from "events";
+import type * as pg from "pg";
 
 interface Activity {
   image: string;
@@ -12,13 +13,20 @@ const activities: Activity[] = [
 ];
 
 const socialTimers = [30, 60, 300, 600];
+const hungerRating = 10;
 
 class Pet extends EventEmitter {
   activity = activities[0];
 
+  food = 30;
+
   status = [
-    { name: "happiness", max: 5, current: 4 },
-    { name: "hunger", max: 5, current: 4 },
+    { name: "happiness", max: 5, current: 3 },
+    {
+      name: "hunger",
+      max: 5,
+      current: Math.max(1, Math.round(this.food / hungerRating)),
+    },
     { name: "health", max: 5, current: 4 },
     { name: "social", max: 5, current: 3 },
   ];
@@ -34,18 +42,26 @@ class Pet extends EventEmitter {
     return { activity: this.activity, status: this.status, stats: this.stats };
   }
 
-  constructor() {
+  constructor(private db: pg.Client) {
     super();
 
     this.updateSocial.bind(this);
     this.setLastMessage.bind(this);
-    setInterval(() => {
-      this.setActivity(
-        activities[Math.floor(Math.random() * activities.length)]
-      );
 
-      this.updateSocial();
-    }, 5000);
+    this.load().then(() => {
+      setInterval(() => {
+        this.setActivity(
+          activities[Math.floor(Math.random() * activities.length)]
+        );
+
+        this.updateSocial();
+        this.updateFood();
+        this.updateHappiness();
+        this.updateHealth();
+        this.emit("status", this.status);
+        this.save();
+      }, 5000);
+    });
   }
 
   setActivity(activity: Activity) {
@@ -61,6 +77,7 @@ class Pet extends EventEmitter {
         this.lastMessage = Date.now();
         social.current++;
         this.emit("status", this.status);
+        this.save();
       }
     }
 
@@ -75,15 +92,77 @@ class Pet extends EventEmitter {
     if (diff >= socialTimers[5 - social.current]) {
       this.lastMessage = Date.now();
       social.current--;
-      this.emit("status", this.status);
     }
+  }
+
+  updateFood() {
+    this.food = Math.max(0, this.food--);
+
+    const hunger = this.status.find((s) => s.name === "hunger");
+    hunger.current = Math.max(
+      1,
+      Math.min(5, Math.round(this.food / hungerRating))
+    );
+  }
+
+  updateHappiness() {
+    const happy = this.status.find((s) => s.name === "happiness");
+    if (Math.random() < 0.1) {
+      happy.current = Math.max(1, happy.current - 1);
+    }
+  }
+
+  updateHealth() {
+    if (
+      this.status
+        .filter((s) => s.name !== "health")
+        .some((s) => s.current === 1)
+    ) {
+      const health = this.status.find((s) => s.name === "health");
+      health.current = Math.max(1, health.current - 1);
+    }
+  }
+
+  addHappiness(happiness: number) {
+    const happy = this.status.find((s) => s.name === "happiness");
+    happy.current = Math.max(1, Math.min(5, happy.current + happiness));
+
+    this.emit("status", this.status);
+    this.save();
   }
 
   addBits(bits: number) {
     this.stats.find((s) => s.name === "Weight").value += bits;
     this.emit("stats", this.stats);
+    this.save();
 
-    // TODO affect hunger here!
+    this.food += bits;
+  }
+
+  async save() {
+    for (const status of this.status) {
+      await this.db.query(
+        "insert into status (name, current) values ($2, $1) on conflict (name) do update set current=$1 where status.name=$2",
+        [status.current, status.name]
+      );
+    }
+    for (const stats of this.stats) {
+      await this.db.query(
+        "insert into stats (name, value) values ($2, $1) on conflict (name) do update set value=$1 where stats.name=$2",
+        [stats.value, stats.name]
+      );
+    }
+  }
+
+  async load() {
+    let results = await this.db.query("select * from status");
+    results.rows.forEach((row) => {
+      this.status.find((s) => s.name === row.name).current = row.current;
+    });
+    results = await this.db.query("select * from stats");
+    results.rows.forEach((row) => {
+      this.stats.find((s) => s.name === row.name).value = row.value;
+    });
   }
 }
 

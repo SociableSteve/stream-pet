@@ -7,6 +7,17 @@ import * as http from "http";
 import * as tmi from "tmi.js";
 import Pet from "./pet";
 
+import * as pg from "pg";
+const db = new pg.Client({ connectionString: process.env.DATABASE_URL });
+db.connect().then(() => {
+  db.query(
+    "create table if not exists status (name varchar(25) not null unique, current int)"
+  );
+  db.query(
+    "create table if not exists stats (name varchar(25) not null unique, value int)"
+  );
+});
+
 // Set up express
 const app = express();
 app.use(express.static(path.resolve(__dirname, "../public")));
@@ -15,7 +26,7 @@ app.use(express.static(path.resolve(__dirname, "../public")));
 const server = http.createServer(app);
 server.listen(process.env.PORT || 8080);
 
-const pet = new Pet();
+const pet = new Pet(db);
 
 // Set up WebSocket server
 const wss = new ws.Server({ server });
@@ -62,11 +73,13 @@ twitch.on("subscription", (channel, username) => {
   wss.clients.forEach((client) =>
     client.send(JSON.stringify({ subscription: username }))
   );
+  pet.addHappiness(3);
 });
 twitch.on("ban", (channel, username) => {
   wss.clients.forEach((client) =>
     client.send(JSON.stringify({ ban: username }))
   );
+  pet.addHappiness(-1);
 });
 
 const bitmote_checks = new RegExp(
@@ -89,6 +102,7 @@ twitch.on("cheer", (channel, userstate, message) => {
       );
     }
   });
+  pet.addHappiness(1);
 });
 
 twitch.connect();
