@@ -67,6 +67,7 @@ twitch.on("message", (channel, tags, message, self) => {
   pet.setLastMessage(Date.now());
   if (users_seen.includes(tags["display-name"])) return;
   users_seen.push(tags["display-name"]);
+  pet.addHappiness(1);
 
   wss.clients.forEach((client) =>
     client.send(JSON.stringify({ seen: tags["display-name"] }))
@@ -105,7 +106,7 @@ twitch.on("cheer", (channel, userstate, message) => {
       );
     }
   });
-  pet.addHappiness(1);
+  pet.addHappiness(2);
 });
 
 twitch.connect();
