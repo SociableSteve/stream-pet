@@ -13,6 +13,8 @@ let direction = 1;
 let toSay = [];
 let talking = false;
 
+const voice = new Audio("/voice.mp3");
+
 pet.getElementsByTagName("img")[0].src = activity.image;
 function talk() {
   if (talking) return;
@@ -21,6 +23,7 @@ function talk() {
   let speech = document.getElementById("speech");
   speech.style.opacity = 100;
   speech.innerText = toSay[0];
+  voice.play();
 
   if (parseInt(pet.style.left) > window.innerWidth / 2) {
     speech.style.right = 0;
