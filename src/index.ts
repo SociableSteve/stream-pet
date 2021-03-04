@@ -126,6 +126,7 @@ import axios from "axios";
     {
       headers: {
         Authorization: `OAuth ${process.env.TWITCH_PASS}`,
+        "Client-ID": process.env.TWITCH_CLIENT_ID,
       },
     }
   );
@@ -143,6 +144,7 @@ import axios from "axios";
     {
       headers: {
         Authorization: `OAuth ${process.env.TWITCH_PASS}`,
+        "Client-ID": process.env.TWITCH_CLIENT_ID,
       },
     }
   );
