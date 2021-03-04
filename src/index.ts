@@ -120,7 +120,7 @@ axios.post(
     "hub.callback": "https://sociable-squishy.herokuapp.com/follow",
     "hub.mode": "unsubscribe",
     "hub.topic": "https://api.twitch.tv/helix/users/follows?to_id=76884091",
-    "hub.lease_seconds": 86400,
+    "hub.lease_seconds": 864000,
   },
   {
     headers: {
@@ -138,7 +138,7 @@ app.get("/follow", async (req, res) => {
         "hub.callback": "https://sociable-squishy.herokuapp.com/follow",
         "hub.mode": "subscribe",
         "hub.topic": "https://api.twitch.tv/helix/users/follows?to_id=76884091",
-        "hub.lease_seconds": 86400,
+        "hub.lease_seconds": 864000,
       },
       {
         headers: {
