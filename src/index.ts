@@ -114,41 +114,41 @@ twitch.on("cheer", (channel, userstate, message) => {
 twitch.connect();
 
 import axios from "axios";
-(async () => {
-  await axios.post(
-    "https://api.twitch.tv/helix/webhooks/hub",
-    {
-      "hub.callback": "https://sociable-squishy.herokuapp.com/follow",
-      "hub.mode": "unsubscribe",
-      "hub.topic": "https://api.twitch.tv/helix/users/follows?to_id=76884091",
-      "hub.lease_seconds": 86400,
+axios.post(
+  "https://api.twitch.tv/helix/webhooks/hub",
+  {
+    "hub.callback": "https://sociable-squishy.herokuapp.com/follow",
+    "hub.mode": "unsubscribe",
+    "hub.topic": "https://api.twitch.tv/helix/users/follows?to_id=76884091",
+    "hub.lease_seconds": 86400,
+  },
+  {
+    headers: {
+      Authorization: `Bearer ${process.env.TWITCH_PASS}`,
+      "Client-ID": process.env.TWITCH_CLIENT_ID,
     },
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.TWITCH_PASS}`,
-        "Client-ID": process.env.TWITCH_CLIENT_ID,
-      },
-    }
-  );
+  }
+);
 
-  await axios.post(
-    "https://api.twitch.tv/helix/webhooks/hub",
-    {
-      "hub.callback": "https://sociable-squishy.herokuapp.com/follow",
-      "hub.mode": "subscribe",
-      "hub.topic": "https://api.twitch.tv/helix/users/follows?to_id=76884091",
-      "hub.lease_seconds": 86400,
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.TWITCH_PASS}`,
-        "Client-ID": process.env.TWITCH_CLIENT_ID,
+app.get("/follow", async (req, res) => {
+  if (req.query["hub.mode"] === "unsubscribe") {
+    await axios.post(
+      "https://api.twitch.tv/helix/webhooks/hub",
+      {
+        "hub.callback": "https://sociable-squishy.herokuapp.com/follow",
+        "hub.mode": "subscribe",
+        "hub.topic": "https://api.twitch.tv/helix/users/follows?to_id=76884091",
+        "hub.lease_seconds": 86400,
       },
-    }
-  );
-})();
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.TWITCH_PASS}`,
+          "Client-ID": process.env.TWITCH_CLIENT_ID,
+        },
+      }
+    );
+  }
 
-app.get("/follow", (req, res) => {
   res.send(req.query["hub.challenge"]);
 });
 app.post("/follow", (req, res) => {
