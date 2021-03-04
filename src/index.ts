@@ -110,3 +110,13 @@ twitch.on("cheer", (channel, userstate, message) => {
 });
 
 twitch.connect();
+
+app.post("/follow", (req, res) => {
+  pet.addHappiness(1);
+
+  req.body.data.forEach((r) => {
+    wss.clients.forEach((client) =>
+      client.send(JSON.stringify({ follow: r.from_name }))
+    );
+  });
+});

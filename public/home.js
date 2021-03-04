@@ -94,6 +94,11 @@ function createWS() {
         case "subscription":
           toSay.push(`Thanks for your subscription, ${data.subscription}!`);
           break;
+        case "follow":
+          toSay.push(
+            `A new friend! Welcome to the Squishy club, ${data.follow}!`
+          );
+          break;
         case "ban":
           toSay.push(`You've been naughty, ${data.ban}! See you never!`);
           break;
