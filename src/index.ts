@@ -10,7 +10,7 @@ import Pet from "./pet";
 import * as pg from "pg";
 const db = new pg.Client({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
+  // ssl: { rejectUnauthorized: false },
 });
 db.connect().then(() => {
   db.query(
@@ -113,19 +113,28 @@ twitch.connect();
 
 import axios from "axios";
 (async () => {
+  console.log(
+    await axios.get(
+      "https://api.twitch.tv/helix/users/follows?to_id=76884091",
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.TWITCH_PASS}`,
+          "Client-ID": process.env.TWITCH_CLIENT_ID,
+        },
+      }
+    )
+  );
   await axios.post(
     "https://api.twitch.tv/helix/webhooks/hub",
     {
-      hub: {
-        callback: "https://sociable-squishy.herokuapp.com/follow",
-        mode: "unsubscribe",
-        topic: "https://api.twitch.tv/helix/users/follows",
-        lease_seconds: 86400,
-      },
+      "hub.callback": "https://sociable-squishy.herokuapp.com/follow",
+      "hub.mode": "unsubscribe",
+      "hub.topic": "https://api.twitch.tv/helix/users/follows?to_id=76884091",
+      "hub.lease_seconds": 86400,
     },
     {
       headers: {
-        Authorization: `OAuth ${process.env.TWITCH_PASS}`,
+        Authorization: `Bearer ${process.env.TWITCH_PASS}`,
         "Client-ID": process.env.TWITCH_CLIENT_ID,
       },
     }
@@ -134,16 +143,14 @@ import axios from "axios";
   await axios.post(
     "https://api.twitch.tv/helix/webhooks/hub",
     {
-      hub: {
-        callback: "https://sociable-squishy.herokuapp.com/follow",
-        mode: "subscribe",
-        topic: "https://api.twitch.tv/helix/users/follows",
-        lease_seconds: 86400,
-      },
+      "hub.callback": "https://sociable-squishy.herokuapp.com/follow",
+      "hub.mode": "subscribe",
+      "hub.topic": "https://api.twitch.tv/helix/users/follows?to_id=76884091",
+      "hub.lease_seconds": 86400,
     },
     {
       headers: {
-        Authorization: `OAuth ${process.env.TWITCH_PASS}`,
+        Authorization: `Bearer ${process.env.TWITCH_PASS}`,
         "Client-ID": process.env.TWITCH_CLIENT_ID,
       },
     }
