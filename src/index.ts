@@ -113,17 +113,6 @@ twitch.connect();
 
 import axios from "axios";
 (async () => {
-  console.log(
-    await axios.get(
-      "https://api.twitch.tv/helix/users/follows?to_id=76884091",
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.TWITCH_PASS}`,
-          "Client-ID": process.env.TWITCH_CLIENT_ID,
-        },
-      }
-    )
-  );
   await axios.post(
     "https://api.twitch.tv/helix/webhooks/hub",
     {
@@ -157,6 +146,9 @@ import axios from "axios";
   );
 })();
 
+app.get("/follow", (req, res) => {
+  res.send(req.query["hub.challenge"]);
+});
 app.post("/follow", (req, res) => {
   pet.addHappiness(1);
 
