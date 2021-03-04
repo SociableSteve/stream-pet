@@ -10,7 +10,7 @@ import Pet from "./pet";
 import * as pg from "pg";
 const db = new pg.Client({
   connectionString: process.env.DATABASE_URL,
-  // ssl: { rejectUnauthorized: false },
+  ssl: { rejectUnauthorized: false },
 });
 db.connect().then(() => {
   db.query(
@@ -22,7 +22,9 @@ db.connect().then(() => {
 });
 
 // Set up express
+import * as bodyParser from "body-parser";
 const app = express();
+app.use(bodyParser.json());
 app.use(express.static(path.resolve(__dirname, "../public")));
 
 // Set up HTTP server
