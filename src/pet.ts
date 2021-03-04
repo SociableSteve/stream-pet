@@ -107,7 +107,7 @@ class Pet extends EventEmitter {
 
   updateHappiness() {
     const happy = this.status.find((s) => s.name === "happiness");
-    if (Math.random() < 0.1) {
+    if (Math.random() < 0.05) {
       happy.current = Math.max(1, happy.current - 1);
     }
   }
