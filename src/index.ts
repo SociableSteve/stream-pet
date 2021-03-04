@@ -54,7 +54,7 @@ const twitch = new tmi.Client({
   },
   identity: {
     username: process.env.TWITCH_USER,
-    password: process.env.TWITCH_PASS,
+    password: `oauth:${process.env.TWITCH_PASS}`,
   },
   channels: [process.env.TWITCH_CHANNEL],
 });
@@ -110,6 +110,43 @@ twitch.on("cheer", (channel, userstate, message) => {
 });
 
 twitch.connect();
+
+import axios from "axios";
+(async () => {
+  await axios.post(
+    "https://api.twitch.tv/helix/webhooks/hub",
+    {
+      hub: {
+        callback: "https://sociable-squishy.herokuapp.com/follow",
+        mode: "unsubscribe",
+        topic: "https://api.twitch.tv/helix/users/follows",
+        lease_seconds: 86400,
+      },
+    },
+    {
+      headers: {
+        Authorization: `OAuth ${process.env.TWITCH_PASS}`,
+      },
+    }
+  );
+
+  await axios.post(
+    "https://api.twitch.tv/helix/webhooks/hub",
+    {
+      hub: {
+        callback: "https://sociable-squishy.herokuapp.com/follow",
+        mode: "subscribe",
+        topic: "https://api.twitch.tv/helix/users/follows",
+        lease_seconds: 86400,
+      },
+    },
+    {
+      headers: {
+        Authorization: `OAuth ${process.env.TWITCH_PASS}`,
+      },
+    }
+  );
+})();
 
 app.post("/follow", (req, res) => {
   pet.addHappiness(1);
