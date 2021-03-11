@@ -15,11 +15,22 @@ let talking = false;
 
 const voice = new Audio("/voice.mp3");
 
-pet.getElementsByTagName("img")[0].src = activity.image;
+setSrc(activity.image);
+function setSrc(src) {
+  const today = new Date();
+  if (today.getMonth() === 2 && today.getDate() === 11) {
+    src = src.replace(".gif", "-birthday.gif");
+  }
+  if (
+    new URL(pet.getElementsByTagName("img")[0].src).pathname.substr(1) !== src
+  ) {
+    pet.getElementsByTagName("img")[0].src = src;
+  }
+}
 function talk() {
   if (talking) return;
   talking = true;
-  petImg.src = "Sitting.gif";
+  setSrc("Sitting.gif");
   let speech = document.getElementById("speech");
   speech.style.opacity = 100;
   speech.innerText = toSay[0];
@@ -44,9 +55,8 @@ function move() {
   if (toSay.length) {
     pet.style.transform = "scale(1)";
     return talk();
-  } else if (new URL(petImg.src).pathname.substr(1) !== activity.image) {
-    petImg.src = activity.image;
   }
+  setSrc(activity.image);
 
   const delta = activity.speed * direction;
   const position = parseInt(pet.style.left || "0");
